@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import datetime
 import json
 import logging
 import random
@@ -9,6 +9,8 @@ from crontab import CronTab
 import time
 import os
 from genshin import Sign, makeResult
+
+time_format = "%Y-%m-%d %M:%S"
 
 
 def sign_in(_cookies: str):
@@ -49,10 +51,21 @@ if __name__ == "__main__":
             cookies.append(json.dumps(i))
     signin_all(cookies)
     cron = CronTab(cron_dict_update, loop=True, random_seconds=True)
+
+
+    def next_run_time():
+        nt = datetime.datetime.now().strftime(time_format)
+        delayt = cron.next(default_utc=False)
+        nextrun = datetime.datetime.now() + datetime.timedelta(seconds=delayt)
+        nextruntime = nextrun.strftime(time_format)
+        print(f"Current running datetime: {nt}")
+        print(f"Next run datetime: {nextruntime}")
+
+
+    next_run_time()
     while True:
         ct = cron.next(default_utc=False)
         time.sleep(ct)
-        print("开始签到")
+        print("Starting signing")
         signin_all(cookies)
-        print("签到完成")
-
+        next_run_time()

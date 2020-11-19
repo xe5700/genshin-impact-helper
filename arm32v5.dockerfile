@@ -6,7 +6,7 @@ ENV USE_TELEGRAM=False
 ENV TG_TOKEN=TOKEN
 ENV TG_CHAT_IDS=[]
 RUN adduser app -D
-RUN apk add --no-cache tzdata build-base
+RUN apk add --no-cache tzdata build-base libffi-dev
 WORKDIR /tmp
 ADD requirements.txt ./
 RUN pip3 install -r requirements.txt && rm requirements.txt

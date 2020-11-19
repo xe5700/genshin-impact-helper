@@ -63,7 +63,7 @@ def sign_in(_cookies: str):
             chat = tg_bot.get_chat(chat_id=chat_id)
             for result in tg_results:
                 chat.send_message(result)
-
+        logging.info(f"Pushed message to telegram")
 
 def signin_all(_cookies: List[str]):
     for i in _cookies:

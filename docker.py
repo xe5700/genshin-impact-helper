@@ -49,7 +49,8 @@ def sign_in(_cookies: str):
     except Exception as e:
         jstr = str(e)
         logging.error(e)
-    logging.info(json.dumps(results, ensure_ascii=False))
+    for result in results:
+        logging.info(f"\n{result}")
     if tg_bot:
         tg_results = []
         for iii, result in enumerate(results):

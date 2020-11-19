@@ -93,10 +93,12 @@ JSON.stringify([document.cookie]);
 * `xxxxxx`部分即为所需复制的`Cookie`
 
 #### 2 部署
-    docker pull xe5700/genshin-impact-helper
+    docker pull xe5700/genshin-impact-helper:latest
     echo COOKIES=你的COOKIE信息 > genshin-impact-help-cookies.sh
-    docker run -d --env-file genshin-impact-help-cookies.sh --name genshin-impact-helper --restart=always xe5700/genshin-impact-helper
+    docker run -d --env-file genshin-impact-help-cookies.sh --name genshin-impact-helper --restart=always xe5700/genshin-impact-helper:latest
     然后根据你的需要设置环境变量运行即可
+    默认为每天早上九点半运行，可以自行修改CRON_DICT_UPDATE变量自定义运行时间。
+    镜像同时支持ARM平台和AMD64平台，机顶盒树莓派电视盒子也可以用。
 
 ## 🔍结果
 

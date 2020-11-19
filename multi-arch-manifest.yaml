@@ -1,0 +1,21 @@
+image: xe5700/genshin-impact-helper:latest
+manifests:
+  - image: xe5700/genshin-impact-helper:amd64
+    platform:
+      architecture: amd64
+      os: linux
+  - image: xe5700/genshin-impact-helper:arm32v5
+    platform:
+      architecture: arm
+      os: linux
+      variant: v5
+  - image: xe5700/genshin-impact-helper:arm32v7
+    platform:
+      architecture: arm
+      os: linux
+      variant: v7
+  - image: xe5700/genshin-impact-helper:arm64v8
+    platform:
+      architecture: arm64
+      os: linux
+      variant: v8

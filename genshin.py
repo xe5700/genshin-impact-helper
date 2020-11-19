@@ -61,13 +61,22 @@ class Roles(object):
   def get_roles(self):
     try:
       jdict = json.loads(
-              requests.Session().get(
-                self._url, headers = self.get_header()).text)
+        requests.Session().get(
+          self._url, headers = self.get_header()).text)
     except Exception as e:
       logging.error(e)
       raise HTTPError
 
     return jdict
+
+
+class RoleData(object):
+  region: str
+  uid: str
+
+  def __init__(self, data: dict):
+      self.region = data["region"]
+      self.uid = data["game_uid"]
 
 
 class Sign(object):
@@ -105,16 +114,13 @@ class Sign(object):
       self._roles
     except AttributeError:
       raise Exception(errstr)
-
+    self._roles_data = []
     # cn_gf01:    Official server
     # cn_qd01:    Bilibili server
     try:
-      self._region = self._roles['data']['list'][0]['region']
-    except:
-      raise KeyError(str(self._roles))
-
-    try:
-      self._uid = self._roles['data']['list'][0]['game_uid']
+      roles_list = self._roles["data"]["list"]
+      for role in roles_list:
+        self._roles_data.append(RoleData(role))
     except:
       raise KeyError(str(self._roles))
 
@@ -124,9 +130,9 @@ class Sign(object):
   def md5(self, text):
     md5 = hashlib.md5()
     md5.update(text.encode())
-    return (md5.hexdigest())
+    return md5.hexdigest()
 
-  def get_DS(self):
+  def get_DS(self) -> str:
     n = self.md5(Conf.app_version)
     i = str(int(time.time()))
     r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
@@ -135,9 +141,12 @@ class Sign(object):
 
   def get_header(self):
     actid = 'e202009291139501'
-    ref = "%s?bbs_auth_required=%s&act_id=%s&utm_source=%s" \
-          "&utm_medium=%s&utm_campaign=%s" %(
-            Conf.index_url, 'true', actid, 'bbs', 'mys', 'icon')
+    bbs_auth_required = 'true'
+    utm_source = 'bbs'
+    utm_medium = 'mys'
+    utm_campaign = 'icon'
+    ref = f"{Conf.index_url}?bbs_auth_required={bbs_auth_required}&act_id={actid}" \
+          f"&utm_source={utm_source}&utm_medium={utm_medium}&utm_campaign={utm_campaign}"
 
     return {
       'x-rpc-device_id': str(uuid.uuid3(
@@ -152,7 +161,8 @@ class Sign(object):
     }
 
   def run(self):
-    logging.info('UID is %s' %(str(self._uid).replace(str(self._uid)[3:6],'***',1)))
+    UID = str(self._uid).replace(str(self._uid)[3:6], '***' ,1)
+    logging.info(f'UID is {UID}')
 
     data = {
       'act_id': 'e202009291139501',
@@ -183,8 +193,8 @@ def makeResult(result:str, data=None):
 if __name__ == "__main__":
   seconds = random.randint(10, 300)
   ret = -1
-
-  logging.info('Sleep for %s seconds ...' %(seconds))
+  code = -1
+  logging.info(f'Sleep for {seconds} seconds ...')
   time.sleep(seconds)
 
   try:
@@ -195,12 +205,6 @@ if __name__ == "__main__":
     jstr = str(e)
 
   result = makeResult('Failed', jstr)
-
-  try:
-    code
-  except NameError:
-    code = -1
-
   # 0:        success
   # -5003:    already signed in
   if code in [0, -5003]:

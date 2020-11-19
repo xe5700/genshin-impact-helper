@@ -22,7 +22,7 @@ Genshin Impact Helper
 
 **如果觉得本项目对你有帮助，顺手点个 `Star` 吧QAQ❤**
 
-## 📐部署
+## 📐GITHUB ACTION 方式部署
 
 ### 1. Fork 仓库
 
@@ -73,6 +73,37 @@ JSON.stringify({
 > ![run](https://i.loli.net/2020/10/28/5ylvgdYf9BDMqAH.png)
 
 至此，部署完毕。
+
+## DOCKER方式部署
+
+### 1. 获取 Cookie
+
+浏览器打开 https://bbs.mihoyo.com/ys/ 并登录账号
+
+* 复制以下代码
+```
+JSON.stringify([document.cookie]);
+```
+* 按`F12`，打开`开发者工具`，找到`Console`并点击
+* 命令行粘贴代码并运行，获得类似`["xxxxxx"]`的输出信息
+* `xxxxxx`部分即为所需复制的`Cookie`
+
+#### 2. 部署容器
+
+##### Windows - Powershell
+    Invoke-WebRequest -Uri https://raw.githubusercontent.com/xe5700/genshin-impact-helper/master/docker-compose.yml -Out docker-compose.yml
+    然后手动把 上一步复制的COOKIE 替换进去
+    再执行
+    docker compose up -d -f .\docker-compose.yml -p genshin-impact-helper
+    即可运行
+
+##### Linux - Bash
+    wget https://raw.githubusercontent.com/xe5700/genshin-impact-helper/master/docker-compose.yml
+    然后手动把 上一步复制的COOKIE 替换进去
+    再执行
+    docker compose up -d -f ./docker-compose.yml -p genshin-impact-helper
+    即可运行
+
 
 ## 🔍结果
 

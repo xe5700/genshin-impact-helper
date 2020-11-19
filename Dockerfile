@@ -1,5 +1,5 @@
 FROM python:3-alpine
-ENV CRON_DICT_UPDATE='9 30 * * *'
+ENV CRON_DICT_UPDATE='30 9 * * *'
 ENV TZ=Asia/Shanghai
 RUN adduser app -D
 RUN apk add --no-cache tzdata

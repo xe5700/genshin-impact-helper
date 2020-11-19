@@ -45,10 +45,10 @@ if __name__ == "__main__":
     cookies_env = json.loads(env["COOKIES"])
     cookies = []
     if type(cookies_env) == dict:
-        cookies.append(json.dumps(cookies_env))
+        cookies.append(cookies_env)
     else:
         for i in cookies_env:
-            cookies.append(json.dumps(i))
+            cookies.append(i)
     signin_all(cookies)
     cron = CronTab(cron_dict_update, loop=True, random_seconds=True)
 

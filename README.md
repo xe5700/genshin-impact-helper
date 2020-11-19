@@ -92,21 +92,11 @@ JSON.stringify([document.cookie]);
 * 命令行粘贴代码并运行，获得类似`["xxxxxx"]`的输出信息
 * `xxxxxx`部分即为所需复制的`Cookie`
 
-#### 2. 部署容器
-
-##### Windows - Powershell
-    Invoke-WebRequest -Uri https://raw.githubusercontent.com/xe5700/genshin-impact-helper/master/docker-compose.yml -Out docker-compose.yml
-    然后手动把 上一步复制的COOKIE 替换进去
-    再执行
-    docker compose up -d -f .\docker-compose.yml -p genshin-impact-helper
-    即可运行
-
-##### Linux - Bash
-    wget https://raw.githubusercontent.com/xe5700/genshin-impact-helper/master/docker-compose.yml
-    然后手动把 上一步复制的COOKIE 替换进去
-    再执行
-    docker compose up -d -f ./docker-compose.yml -p genshin-impact-helper
-    即可运行
+#### 2 部署
+    docker pull xe5700/genshin-impact-helper
+    echo COOKIES=你的COOKIE信息 > genshin-impact-help-cookies.sh
+    docker run -d --env-file genshin-impact-help-cookies.sh --name genshin-impact-helper --restart=always xe5700/genshin-impact-helper
+    然后根据你的需要设置环境变量运行即可
 
 ## 🔍结果
 

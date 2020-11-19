@@ -8,7 +8,7 @@ from typing import List
 from crontab import CronTab
 import time
 import os
-from .genshin import Sign, makeResult
+from genshin import Sign, makeResult
 
 
 def sign_in(_cookies: str):

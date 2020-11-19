@@ -74,6 +74,10 @@ JSON.stringify({
 
 至此，部署完毕。
 
+## 🔍结果
+
+当你完成上述流程，可以在`Actions`页面点击`Genshin Impact Helper`-->`build`-->`Run sign`查看结果。
+
 ## DOCKER方式部署
 
 ### 1. 获取 Cookie
@@ -104,10 +108,9 @@ JSON.stringify([document.cookie]);
     docker compose up -d -f ./docker-compose.yml -p genshin-impact-helper
     即可运行
 
-
 ## 🔍结果
 
-当你完成上述流程，可以在`Actions`页面点击`Genshin Impact Helper`-->`build`-->`Run sign`查看结果。
+当你完成上述流程，可以通过查看DOCKER日志的方式查看结果。
 
 ### 签到成功
 

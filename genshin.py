@@ -9,6 +9,7 @@ import random
 import hashlib
 import string
 from requests.exceptions import *
+from typing import List
 
 logging.basicConfig(
   level = logging.INFO,
@@ -80,6 +81,7 @@ class RoleData(object):
 
 
 class Sign(object):
+  _roles_data: List[RoleData]
   def __init__(self, cookie:str=None):
     if type(cookie) is not str:
       raise TypeError("%s want a %s but got %s" %(
@@ -161,23 +163,24 @@ class Sign(object):
     }
 
   def run(self):
-    UID = str(self._uid).replace(str(self._uid)[3:6], '***' ,1)
-    logging.info(f'UID is {UID}')
+    for role in self._roles_data:
+      UID = str(role.uid).replace(str(role.uid)[3:6], '***' ,1)
+      logging.info(f'UID is {UID}')
 
-    data = {
-      'act_id': 'e202009291139501',
-      'region': self._region,
-      'uid': self._uid
-    }
+      data = {
+        'act_id': 'e202009291139501',
+        'region': role.region,
+        'uid': role.uid
+      }
 
-    try:
-      jdict = json.loads(requests.Session().post(
-        self._url, headers = self.get_header(),
-        data = json.dumps(data, ensure_ascii=False)).text)
-    except Exception as e:
-      raise
+      try:
+        jdict = json.loads(requests.Session().post(
+          self._url, headers = self.get_header(),
+          data = json.dumps(data, ensure_ascii=False)).text)
+      except Exception as e:
+        raise
 
-    return jdict
+      return jdict
 
 
 def makeResult(result:str, data=None):

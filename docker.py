@@ -2,36 +2,66 @@
 import datetime
 import json
 import logging
+import os
 import random
+import time
 from typing import List
 
+import telegram
 from crontab import CronTab
-import time
-import os
-from genshin import Sign, makeResult
+
+from genshin import Sign, SignInfo, RoleData
+from utils import str2bool
 
 time_format = "%Y-%m-%d %M:%S"
+# noinspection PyTypeChecker
+tg_bot: telegram.Bot = None
+tg_chatids: List[str] = []
 
 
 def sign_in(_cookies: str):
-    seconds = random.randint(60, 1200)
+    seconds = random.randint(60, 600)
     code = -1
     logging.info(f'Sleep for {seconds} seconds ...')
-    time.sleep(seconds)
-
+    # time.sleep(seconds)
+    jdict: dict
+    results = []
+    roles: List[RoleData] = []
     try:
-        jdict = Sign(_cookies).run()
-        jstr = json.dumps(jdict, ensure_ascii=False)
-        code = jdict['retcode']
+        jdicts = Sign(_cookies).run()
+        sinfo = SignInfo(_cookies)
+        jsigninfos = sinfo.run()
+        roles = sinfo.roles_data
+        for iii, jdict in enumerate(jdicts):
+            jsigninfo = jsigninfos[iii]
+            code = jdict['retcode']
+            signdata = jsigninfo["data"]
+            result = f'代码: {code}\n' \
+                     f'原因: {jdict["message"]}\n' \
+                     f'签到天数: {signdata["total_sign_day"]}'
+            # 0:        success
+            # -5003:    already signed in
+            if code in [0, -5003]:
+                result = "\n签到成功\n" + result
+            else:
+                result = "\n签到失败\n" + result
+            results.append(result)
     except Exception as e:
         jstr = str(e)
-
-    result = makeResult('Failed', jstr)
-    # 0:        success
-    # -5003:    already signed in
-    if code in [0, -5003]:
-        result = makeResult('Success', jstr)
-    logging.info(result)
+        logging.error(e)
+    logging.info(json.dumps(results, ensure_ascii=False))
+    if tg_bot:
+        tg_results = []
+        for iii, result in enumerate(results):
+            iii: int
+            tg_results.append(f"昵称:{roles[iii].nickname}\n" \
+                              f"UID:{roles[iii].uid}\n" \
+                              f"服务器区域:{roles[iii].region}\n" \
+                              + result)
+        for chat_id in tg_chatids:
+            chat = tg_bot.get_chat(chat_id=chat_id)
+            for result in tg_results:
+                chat.send_message(result)
 
 
 def signin_all(_cookies: List[str]):
@@ -44,6 +74,9 @@ if __name__ == "__main__":
     cron_dict_update = env["CRON_DICT_UPDATE"]
     cookies_env = json.loads(env["COOKIES"])
     cookies = []
+    if str2bool(env["USE_TELEGRAM"]):
+        tg_bot = telegram.Bot(token=env["TG_TOKEN"])
+        tg_chatids = json.loads(env["TG_CHAT_IDS"])
     if type(cookies_env) == dict:
         cookies.append(cookies_env)
     else:

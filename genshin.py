@@ -12,208 +12,230 @@ from requests.exceptions import *
 from typing import List
 
 logging.basicConfig(
-  level = logging.INFO,
-  format = '%(asctime)s %(levelname)s %(message)s',
-  datefmt = '%Y-%m-%dT%H:%M:%S')
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    datefmt='%Y-%m-%dT%H:%M:%S')
 
 
 class ConfMeta(type):
-  @property
-  def index_url(self):
-    return 'https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html'
+    @property
+    def index_url(self):
+        return 'https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html'
 
-  @property
-  def app_version(self):
-    return '2.1.0'
+    @property
+    def app_version(self):
+        return '2.1.0'
 
-  @property
-  def ua(self):
-    return 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) ' \
-           'AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/%s' %(self.app_version)
+    @property
+    def ua(self):
+        return 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) ' \
+               'AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/%s' % (self.app_version)
 
 
 class Conf(metaclass=ConfMeta):
-  pass
+    pass
 
 
 class Roles(object):
-  def __init__(self, cookie:str=None):
-    if type(cookie) is not str:
-      raise TypeError("%s want a %s but got %s" %(
-        self.__class__, type(__name__), type(cookie)))
+    def __init__(self, cookie: str = None):
+        if type(cookie) is not str:
+            raise TypeError("%s want a %s but got %s" % (
+                self.__class__, type(__name__), type(cookie)))
 
-    self._cookie = cookie
-    self._url = "https://api-takumi.mihoyo.com/binding/api/" \
-                "getUserGameRolesByCookie?game_biz=%s" %('hk4e_cn')
+        self._cookie = cookie
+        self._url = "https://api-takumi.mihoyo.com/binding/api/" \
+                    "getUserGameRolesByCookie?game_biz=%s" % ('hk4e_cn')
 
-  def get_header(self):
-    actid = 'e202009291139501'
-    ref = "%s?bbs_auth_required=%s&act_id=%s&utm_source=%s" \
-          "&utm_medium=%s&utm_campaign=%s" %(
-            Conf.index_url, 'true', actid, 'bbs', 'mys', 'icon')
+    def get_header(self):
+        actid = 'e202009291139501'
+        ref = "%s?bbs_auth_required=%s&act_id=%s&utm_source=%s" \
+              "&utm_medium=%s&utm_campaign=%s" % (
+                  Conf.index_url, 'true', actid, 'bbs', 'mys', 'icon')
 
-    return {
-      'User-Agent': Conf.ua,
-      'Referer': ref,
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Cookie': self._cookie
-    }
+        return {
+            'User-Agent': Conf.ua,
+            'Referer': ref,
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Cookie': self._cookie
+        }
 
-  def get_roles(self):
-    try:
-      jdict = json.loads(
-        requests.Session().get(
-          self._url, headers = self.get_header()).text)
-    except Exception as e:
-      logging.error(e)
-      raise HTTPError
+    def get_roles(self):
+        try:
+            jdict = json.loads(
+                requests.Session().get(
+                    self._url, headers=self.get_header()).text)
+        except Exception as e:
+            logging.error(e)
+            raise HTTPError
 
-    return jdict
+        return jdict
 
 
 class RoleData(object):
-  region: str
-  uid: str
+    region: str
+    uid: str
+    nickname: str
 
-  def __init__(self, data: dict):
-      self.region = data["region"]
-      self.uid = data["game_uid"]
-
+    def __init__(self, data: dict):
+        self.region = data["region"]
+        self.uid = data["game_uid"]
+        self.nickname = data["nickname"]
 
 class Sign(object):
-  _roles_data: List[RoleData]
-  def __init__(self, cookie:str=None):
-    if type(cookie) is not str:
-      raise TypeError("%s want a %s but got %s" %(
-        self.__class__, type(__name__), type(cookie)))
+    roles_data: List[RoleData]
 
-    self._url = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign'
+    def __init__(self, cookie: str = None):
+        if type(cookie) is not str:
+            raise TypeError("%s want a %s but got %s" % (
+                self.__class__, type(__name__), type(cookie)))
 
-    roles = Roles(cookie)
-    errstr = None
+        self._url = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign'
 
-    for i in range(1, 4):
-      try:
-        self._roles = roles.get_roles()
-      except HTTPError as e:
-        logging.error("HTTP error when get user game roles, retry %s times ..." %(i))
-        logging.error("error is %s" %(e))
-        errstr = str(e)
-        continue
-      except KeyError as e:
-        logging.error("Wrong response to get user game roles, retry %s times ..." %(i))
-        logging.error("response is %s" %(e))
-        errstr = str(e)
-        continue
-      except Exception as e:
-        logging.error("Unknown error %s, die" %(e))
-        errstr = str(e)
-        raise
-      else:
-        break
+        roles = Roles(cookie)
+        errstr = None
 
-    try:
-      self._roles
-    except AttributeError:
-      raise Exception(errstr)
-    self._roles_data = []
-    # cn_gf01:    Official server
-    # cn_qd01:    Bilibili server
-    try:
-      roles_list = self._roles["data"]["list"]
-      for role in roles_list:
-        self._roles_data.append(RoleData(role))
-    except:
-      raise KeyError(str(self._roles))
+        for i in range(1, 4):
+            try:
+                self._roles = roles.get_roles()
+            except HTTPError as e:
+                logging.error("HTTP error when get user game roles, retry %s times ..." % (i))
+                logging.error("error is %s" % (e))
+                errstr = str(e)
+                continue
+            except KeyError as e:
+                logging.error("Wrong response to get user game roles, retry %s times ..." % (i))
+                logging.error("response is %s" % (e))
+                errstr = str(e)
+                continue
+            except Exception as e:
+                logging.error("Unknown error %s, die" % (e))
+                errstr = str(e)
+                raise
+            else:
+                break
 
-    self._cookie = cookie
+        try:
+            self._roles
+        except AttributeError:
+            raise Exception(errstr)
+        self.roles_data = []
+        # cn_gf01:    Official server
+        # cn_qd01:    Bilibili server
+        try:
+            roles_list = self._roles["data"]["list"]
+            for role in roles_list:
+                self.roles_data.append(RoleData(role))
+        except:
+            raise KeyError(str(self._roles))
 
-  # Provided by Steesha
-  def md5(self, text):
-    md5 = hashlib.md5()
-    md5.update(text.encode())
-    return md5.hexdigest()
+        self._cookie = cookie
 
-  def get_DS(self) -> str:
-    n = self.md5(Conf.app_version)
-    i = str(int(time.time()))
-    r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
-    c = self.md5("salt=" + n + "&t="+ i + "&r=" + r)
-    return i + "," + r + "," + c
+    # Provided by Steesha
+    def md5(self, text):
+        md5 = hashlib.md5()
+        md5.update(text.encode())
+        return md5.hexdigest()
 
-  def get_header(self):
-    actid = 'e202009291139501'
-    bbs_auth_required = 'true'
-    utm_source = 'bbs'
-    utm_medium = 'mys'
-    utm_campaign = 'icon'
-    ref = f"{Conf.index_url}?bbs_auth_required={bbs_auth_required}&act_id={actid}" \
-          f"&utm_source={utm_source}&utm_medium={utm_medium}&utm_campaign={utm_campaign}"
+    def get_DS(self) -> str:
+        n = self.md5(Conf.app_version)
+        i = str(int(time.time()))
+        r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
+        c = self.md5("salt=" + n + "&t=" + i + "&r=" + r)
+        return i + "," + r + "," + c
 
-    return {
-      'x-rpc-device_id': str(uuid.uuid3(
-        uuid.NAMESPACE_URL, self._cookie)).replace('-','').upper(),
-      'x-rpc-client_type': '5',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'User-Agent': Conf.ua,
-      'Referer': ref,
-      'x-rpc-app_version': Conf.app_version,
-      'DS': self.get_DS(),
-      'Cookie': self._cookie
-    }
+    def get_header(self):
+        actid = 'e202009291139501'
+        bbs_auth_required = 'true'
+        utm_source = 'bbs'
+        utm_medium = 'mys'
+        utm_campaign = 'icon'
+        ref = f"{Conf.index_url}?bbs_auth_required={bbs_auth_required}&act_id={actid}" \
+              f"&utm_source={utm_source}&utm_medium={utm_medium}&utm_campaign={utm_campaign}"
 
-  def run(self):
-    for role in self._roles_data:
-      UID = str(role.uid).replace(str(role.uid)[3:6], '***' ,1)
-      logging.info(f'UID is {UID}')
+        return {
+            'x-rpc-device_id': str(uuid.uuid3(
+                uuid.NAMESPACE_URL, self._cookie)).replace('-', '').upper(),
+            'x-rpc-client_type': '5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'User-Agent': Conf.ua,
+            'Referer': ref,
+            'x-rpc-app_version': Conf.app_version,
+            'DS': self.get_DS(),
+            'Cookie': self._cookie
+        }
 
-      data = {
-        'act_id': 'e202009291139501',
-        'region': role.region,
-        'uid': role.uid
-      }
+    def run(self):
+        jdicts = []
+        for role in self.roles_data:
+            uid = str(role.uid).replace(str(role.uid)[3:6], '***', 1)
+            logging.info(f'UID is {uid}')
 
-      try:
-        jdict = json.loads(requests.Session().post(
-          self._url, headers = self.get_header(),
-          data = json.dumps(data, ensure_ascii=False)).text)
-      except Exception as e:
-        raise
+            data = {
+                'act_id': 'e202009291139501',
+                'region': role.region,
+                'uid': role.uid
+            }
 
-      return jdict
+            try:
+                jdict = json.loads(requests.Session().post(
+                    self._url, headers=self.get_header(),
+                    data=json.dumps(data, ensure_ascii=False)).text)
+            except Exception as e:
+                raise
+
+            jdicts.append(jdict)
+        return jdicts
 
 
-def makeResult(result:str, data=None):
-  return json.dumps(
-    {
-      'result': result,
-      'message': data
-    },
-    sort_keys=False, indent=2, ensure_ascii=False
-  )
+class SignInfo(Sign):
+    def __init__(self, cookie: str = None):
+        super().__init__(cookie)
+        self._url = 'https://api-takumi.mihoyo.com/event/bbs_sign_reward/info'
+
+    def run(self):
+        jdicts = []
+        for role in self.roles_data:
+            try:
+                jdict = json.loads(requests.Session().get(
+                  f"{self._url}?act_id=e202009291139501&region={role.region}&uid={role.uid}",
+                  headers=self.get_header()).text)
+            except Exception as e:
+                raise
+
+            jdicts.append(jdict)
+        return jdicts
+
+
+def makeResult(result: str, data=None):
+    return json.dumps(
+        {
+            'result': result,
+            'message': data
+        },
+        sort_keys=False, indent=2, ensure_ascii=False
+    )
 
 
 if __name__ == "__main__":
-  seconds = random.randint(10, 300)
-  ret = -1
-  code = -1
-  logging.info(f'Sleep for {seconds} seconds ...')
-  time.sleep(seconds)
+    seconds = random.randint(10, 300)
+    ret = -1
+    code = -1
+    logging.info(f'Sleep for {seconds} seconds ...')
+    time.sleep(seconds)
 
-  try:
-    jdict = Sign(input().strip()).run()
-    jstr = json.dumps(jdict, ensure_ascii=False)
-    code = jdict['retcode']
-  except Exception as e:
-    jstr = str(e)
+    try:
+        jdict = Sign(input().strip()).run()
+        jstr = json.dumps(jdict, ensure_ascii=False)
+        code = jdict['retcode']
+    except Exception as e:
+        jstr = str(e)
 
-  result = makeResult('Failed', jstr)
-  # 0:        success
-  # -5003:    already signed in
-  if code in [0, -5003]:
-    result = makeResult('Success', jstr)
-    ret = 0
+    result = makeResult('Failed', jstr)
+    # 0:        success
+    # -5003:    already signed in
+    if code in [0, -5003]:
+        result = makeResult('Success', jstr)
+        ret = 0
 
-  logging.info(result)
-  exit(ret)
-
+    logging.info(result)
+    exit(ret)

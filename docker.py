@@ -26,7 +26,7 @@ def sign_in(_cookies: str):
     seconds = random.randint(60, 600)
     code = -1
     logging.info(f'Sleep for {seconds} seconds ...')
-    # time.sleep(seconds)
+    time.sleep(seconds)
     jdict: dict
     results = []
     roles: List[RoleData] = []

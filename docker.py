@@ -9,6 +9,7 @@ from typing import List
 
 import telegram
 import telegram.ext
+import signal
 from crontab import CronTab
 
 from genshin import Sign, SignInfo, RoleData
@@ -139,7 +140,13 @@ class TgBot:
 tg_bot: TgBot
 
 
+def stop_me(_signo, _stack):
+    print("Docker container has stoped....")
+    exit(-1)
+
+
 def main():
+    signal.signal(signal.SIGINT, stop_me)
     global tg_bot
     env = os.environ
     cron_dict_update = env["CRON_DICT_UPDATE"]

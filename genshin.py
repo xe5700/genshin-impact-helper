@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-import requests
-import json
-import uuid
-import logging
-import time
-import random
 import hashlib
+import json
+import logging
+import random
 import string
-from requests.exceptions import *
+import time
+import uuid
 from typing import List
+
+import requests
+from requests.exceptions import *
 
 logging.basicConfig(
     level=logging.INFO,
@@ -80,6 +81,7 @@ class RoleData(object):
         self.region = data["region"]
         self.uid = data["game_uid"]
         self.nickname = data["nickname"]
+
 
 class Sign(object):
     roles_data: List[RoleData]
@@ -197,8 +199,8 @@ class SignInfo(Sign):
         for role in self.roles_data:
             try:
                 jdict = json.loads(requests.Session().get(
-                  f"{self._url}?act_id=e202009291139501&region={role.region}&uid={role.uid}",
-                  headers=self.get_header()).text)
+                    f"{self._url}?act_id=e202009291139501&region={role.region}&uid={role.uid}",
+                    headers=self.get_header()).text)
             except Exception as e:
                 raise
 
